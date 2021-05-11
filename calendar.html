@@ -87,10 +87,7 @@
 			margin-bottom: 0.2em;
 		}
 	</style>
-	<script lang="text/javascript">
-		var weekdayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-		var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-		
+	<script lang="text/javascript">		
 		var weekTables = [
 			{id: "week1", labelsId: "labels1", length: 7, labels: [], rows: []},
 			{id: "week2", labelsId: "labels2", length: 7, labels: [], rows: []},
@@ -168,23 +165,25 @@
 			}
 		}
 
+
 		// Fill day numbers
 		function fillTables(startDate, endDate, startWeekday) {
 			var monthCount = ((endDate.getFullYear() - startDate.getFullYear()) * 12) + endDate.getMonth() - startDate.getMonth() + 1;
 			monthCount = Math.max(monthCount, 1);
 			resizeTables(monthCount);
 
+			var startYear = startDate.getFullYear();
 			for (var month = 0; month < monthCount; month++) {
 				var rowMonth = startDate.getMonth() + month;
-				var firstDate = new Date(startDate.getFullYear(), rowMonth, 1);
+				var firstDate = new Date(startYear, rowMonth, 1);
 				
 				var firstWeekday = (firstDate.getDay() + 6) % 7; // 0 = Sun -> 0 = Mon
 				var startOffset = (startWeekday - firstWeekday) + 1;
 				if (startOffset > 1) startOffset = startOffset - 7;
 
-				var curDay = new Date(startDate.getFullYear(), rowMonth, startOffset);
+				var curDay = new Date(startYear, rowMonth, startOffset);
 
-				for (var i = 0;i < weekTables.length; i++) {
+				for (var i = 0; i < weekTables.length; i++) {
 					var week = weekTables[i];
 					var row = week.rows[month];
 					for (var cell = 0; cell < row.children.length; cell++) {
@@ -200,7 +199,7 @@
 					}
 				}
 
-				monthLabels[month].children[0].textContent = monthNames[(startDate.getMonth() + month) % 12];
+				monthLabels[month].children[0].textContent = firstDate.toLocaleDateString(undefined, { month: "long" }); //[(startDate.getMonth() + month) % 12];
 			}
 
 			var weekday = startWeekday;
@@ -208,7 +207,10 @@
 				var week = weekTables[i];
 
 				for (var j = 0; j < week.labels.length; j++) {
-					week.labels[j].textContent = weekdayNames[weekday % 7];
+					var monday = new Date(2021, 04, 10); // May 10th 2021
+					monday.setDate(monday.getDate() + (weekday % 7));
+					
+					week.labels[j].textContent = monday.toLocaleDateString(undefined, { weekday: "short" });;
 					weekday++;
 				}
 			}
@@ -277,10 +279,10 @@
 	</script>
 </head>
 <body onload="buildWeekLabels(); updateTable();">
-	<table>
+	<table onclick="toggleControls()">
 		<tr>
 			<td>
-				<table id="header" onclick="toggleControls()">
+				<table id="header">
 					<tr>
 						<td id="titleHeader"></td>
 						<td id="yearHeader"></td>
