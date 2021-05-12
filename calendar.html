@@ -14,7 +14,6 @@
 		}
 
 		body {
-			font-size: 9pt;
 			font-family: Calibri, 'Trebuchet MS', sans-serif;
 		}
 		table, tr, td {
@@ -28,15 +27,19 @@
 
 		#titleHeader {
 			padding-left: 1.5em;
-			font-size: 40pt;
+			font-size: 32pt;
 			vertical-align: middle;
 		}
 		#yearHeader {
-			font-size: 48pt;
+			font-size: 40pt;
 			font-weight: bold;
 			text-align: right;
 			vertical-align: middle;
 			padding-right: 0.15em;
+		}
+
+		#container {
+			font-size: 7.6pt;
 		}
 
 		#monthLabels {
@@ -82,9 +85,34 @@
 
 		#controls {
 			display: none;
+			width: 24em;
+			border: 1px solid black;
+			margin: 2em 0 0 2em;
+			padding: 1em;
 		}
-		#controls input {
-			margin-bottom: 0.2em;
+		#controls h1 {
+			font-size: 14pt;
+			margin: 0 0 0.2em 0;
+		}
+		#controls form {
+			display: table;
+		}
+		#controls p {
+			display: table-row;
+		}
+		#controls label, #controls input {
+			display: table-cell;
+			margin-bottom: 0.3em;
+		}
+		#controls select, #controls input {
+			padding: 0.2em;
+		}
+		#controls label {
+			text-align: right;
+			padding-right: 0.5em;
+		}
+		#titleInput {
+			width: 18em;
 		}
 	</style>
 	<script lang="text/javascript">		
@@ -225,13 +253,13 @@
 			}
 		}
 
-		// Seperate for live updates
+		// Live update for title text
 		function updateTitle() {
-			// Update title text
 			var titleInputEl = document.getElementById("titleInput");
 			var titleHeaderEl = document.getElementById("titleHeader");
 			titleHeaderEl.textContent = titleInputEl.value;
 		}
+		
 		function updateTable() {
 			updateTitle();
 
@@ -316,19 +344,33 @@
 		</tr>
 	</table>
 	<div id="controls">
-		<h2>Controls</h2>
-		Title: <input type="text" id="titleInput" value="Title - Click to show controls" oninput="updateTitle();" /><br />
-		Start Date: <input type="date" id="startDateInput" onchange="updateTable();" /><br />
-		End Date: <input type="date" id="endDateInput" onchange="updateTable();" /><br />
-		Start Weekday: <select id="startWeekdayInput" value=0 onchange="updateTable();">
-			<option value=0 selected="selected">Monday</option>
-			<option value=1>Tuesday</option>
-			<option value=2>Wednesday</option>
-			<option value=3>Thursday</option>
-			<option value=4>Friday</option>
-			<option value=5>Saturday</option>
-			<option value=6>Sunday</option>
-		</select><br />
+		<h1>Controls</h1>
+		<form>
+			<p>
+				<label>Title:</label>
+				<input type="text" id="titleInput" value="Title - Click to show controls" oninput="updateTitle();" />
+			</p>
+			<p>
+				<label>Start Date:</label>
+				<input type="date" id="startDateInput" onchange="updateTable();" />
+			</p>
+			<p>
+				<label>End Date:</label>
+				<input type="date" id="endDateInput" onchange="updateTable();" />
+			</p>
+			<p>
+				<label>Start Weekday:</label>
+				<select id="startWeekdayInput" value=0 onchange="updateTable();">
+					<option value=0 selected="selected">Monday</option>
+					<option value=1>Tuesday</option>
+					<option value=2>Wednesday</option>
+					<option value=3>Thursday</option>
+					<option value=4>Friday</option>
+					<option value=5>Saturday</option>
+					<option value=6>Sunday</option>
+				</select>
+			</p>
+		</form>
 	</div>
 </body>
 </html>
