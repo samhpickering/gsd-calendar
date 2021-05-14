@@ -117,12 +117,12 @@
 	</style>
 	<script lang="text/javascript">		
 		var weekTables = [
-			{id: "week1", labelsId: "labels1", length: 7, labels: [], rows: []},
-			{id: "week2", labelsId: "labels2", length: 7, labels: [], rows: []},
-			{id: "week3", labelsId: "labels3", length: 7, labels: [], rows: []},
-			{id: "week4", labelsId: "labels4", length: 7, labels: [], rows: []},
-			{id: "week5", labelsId: "labels5", length: 7, labels: [], rows: []},
-			{id: "week6", labelsId: "labels6", length: 2, labels: [], rows: []}
+			{id: "week1", labelsId: "labels1", length: 7, labels: [], cells: []},
+			{id: "week2", labelsId: "labels2", length: 7, labels: [], cells: []},
+			{id: "week3", labelsId: "labels3", length: 7, labels: [], cells: []},
+			{id: "week4", labelsId: "labels4", length: 7, labels: [], cells: []},
+			{id: "week5", labelsId: "labels5", length: 7, labels: [], cells: []},
+			{id: "week6", labelsId: "labels6", length: 2, labels: [], cells: []}
 		];
 		var monthLabels = [];
 
@@ -151,95 +151,121 @@
 
 				var weekTable = document.getElementById(week.id);
 
-				if (week.rows.length < rowCount) {
+				if (week.cells.length < rowCount) {
 					// If we've added more rows, create the rows/cells and add them to the table
-					var newRows = rowCount - week.rows.length;
+					var newRows = rowCount - week.cells.length;
 					for (var j = 0; j < newRows; j++) {
+						var cellList = [];
 						var row = document.createElement("tr");
 						for (var k = 0; k < week.length; k++) {
 							var cell = document.createElement("td");
-							cell.textContent = "1";
+							cell.textContent = "?";
 							row.appendChild(cell);
+
+							cellList.push(cell);
 						}
 
 						weekTable.appendChild(row);
-						week.rows.push(row);
+						week.cells.push(cellList);
 					}
- 				} else if (week.rows.length > rowCount) {
+ 				} else if (week.cells.length > rowCount) {
 					// If we've removed rows, remove them from the table
-					for (var j = week.rows.length; j > rowCount; j--) {
-					 	var row = week.rows.pop();
-						weekTable.removeChild(row);
+					for (var j = week.cells.length; j > rowCount; j--) {
+					 	var cellList = week.cells.pop();
+						var cell = cellList.pop();
+						weekTable.removeChild(cell.parentElement);
 					}
 				}
 			}
 
 			var monthLabelTable = document.getElementById("monthLabels");
 			if (monthLabels.length < rowCount) {
+				// Add month labels
 				var newRows = rowCount - monthLabels.length;
 				for (var i = 0; i < newRows; i++) {
 					var row = document.createElement("tr");
+
 					var cell = document.createElement("td");
 					row.appendChild(cell);
+
 					monthLabelTable.appendChild(row);
 
-					monthLabels.push(row);
+					monthLabels.push(cell);
 				}
 			} else if (monthLabels.length > rowCount) {
+				// Remove month labels
 				for (var i = monthLabels.length; i > rowCount; i--) {
-					var row = monthLabels.pop();
-					monthLabelTable.removeChild(row);
+					var cell = monthLabels.pop();
+					monthLabelTable.removeChild(cell.parentElement);
 				}
 			}
 		}
 
+		function getMonday(date) {
+			var dateWeekday = (date.getDay() + 6) % 7; // 0 = Sun -> 0 = Mon
 
-		// Fill day numbers
+			var monday = new Date(date);
+			monday.setDate(date.getDate() - dateWeekday);
+
+			return monday;
+		}
+
+		// Fill day numbers, labels
 		function fillTables(startDate, endDate, startWeekday) {
-			var monthCount = ((endDate.getFullYear() - startDate.getFullYear()) * 12) + endDate.getMonth() - startDate.getMonth() + 1;
+			// Calculate number of rows and resize if needed
+			var monthCount = 1
+				+ ((endDate.getFullYear() - startDate.getFullYear()) * 12)
+				+ (endDate.getMonth() - startDate.getMonth());
+			
 			monthCount = Math.max(monthCount, 1);
 			resizeTables(monthCount);
 
-			var startYear = startDate.getFullYear();
-			for (var month = 0; month < monthCount; month++) {
-				var rowMonth = startDate.getMonth() + month;
-				var firstDate = new Date(startYear, rowMonth, 1);
-				
-				var firstWeekday = (firstDate.getDay() + 6) % 7; // 0 = Sun -> 0 = Mon
-				var startOffset = (startWeekday - firstWeekday) + 1;
-				if (startOffset > 1) startOffset = startOffset - 7;
-
-				var curDay = new Date(startYear, rowMonth, startOffset);
-
-				for (var i = 0; i < weekTables.length; i++) {
-					var week = weekTables[i];
-					var row = week.rows[month];
-					for (var cell = 0; cell < row.children.length; cell++) {
-						if (curDay.getMonth() != rowMonth % 12 || curDay < startDate || curDay > endDate) {
-							row.children[cell].className = "blankDay";
-							row.children[cell].textContent = "";
-						} else {
-							row.children[cell].className = "";
-							row.children[cell].textContent = curDay.getDate();
-						}
-
-						curDay.setDate(curDay.getDate() + 1);
-					}
-				}
-
-				monthLabels[month].children[0].textContent = firstDate.toLocaleDateString(undefined, { month: "long" }); //[(startDate.getMonth() + month) % 12];
-			}
-
-			var weekday = startWeekday;
+			// Fill weekday labels
 			for (var i = 0; i < weekTables.length; i++) {
 				var week = weekTables[i];
 
+				var curDay = getMonday(startDate);
+				curDay.setDate(curDay.getDate() + startWeekday);
+
 				for (var j = 0; j < week.labels.length; j++) {
-					var monday = new Date(2021, 04, 10); // May 10th 2021
-					monday.setDate(monday.getDate() + (weekday % 7));
-					
-					week.labels[j].textContent = monday.toLocaleDateString(undefined, { weekday: "short" });;
-					weekday++;
+					week.labels[j].textContent = curDay.toLocaleDateString(undefined, { weekday: "short" });;
+					curDay.setDate(curDay.getDate() + 1)
+				}
+			}
+
+			for (var month = 0; month < monthCount; month++) {
+				var rowMonth = startDate.getMonth() + month;
+				var firstOfMonth = new Date(startDate.getFullYear(), rowMonth, 1);
+
+				// Fill month labels
+				monthLabels[month].textContent = firstOfMonth.toLocaleDateString(undefined, { month: "long" });
+	
+				// Offset the start of the month to fall on the correct weekday
+				var cellDate = getMonday(firstOfMonth);
+				cellDate.setDate(cellDate.getDate() + startWeekday);
+				if (cellDate.getDate() > 1 && cellDate.getDate() <= 7) {
+					cellDate.setDate(cellDate.getDate() - 7);
+				}
+
+				// Fill cells with day numbers
+				for (var i = 0; i < weekTables.length; i++) {
+					var week = weekTables[i];
+
+					var cells = week.cells[month];
+		
+					for (var j = 0; j < cells.length; j++) {
+						var cell = cells[j];
+
+						if (cellDate.getMonth() != rowMonth % 12 || cellDate < startDate || cellDate > endDate) {
+							cell.className = "blankDay";
+							cell.textContent = "";
+						} else {
+							cell.className = "";
+							cell.textContent = cellDate.getDate();
+						}
+
+						cellDate.setDate(cellDate.getDate() + 1);
+					}
 				}
 			}
 		}
@@ -260,7 +286,7 @@
 			titleHeaderEl.textContent = titleInputEl.value;
 		}
 		
-		function updateTable() {
+		function updateTableSettings() {
 			updateTitle();
 
 			// Update start date - if empty, use current date
@@ -286,28 +312,38 @@
 			endDate.setHours(0, 0, 0, 0);
 			
 			// Update year text
+			// Show single year if start and year are the same
+			// Show truncated range if in the same century (e.g 2021-24)
+			// Show full range otherwise
 			var yearHeaderEl = document.getElementById("yearHeader");
-			if (startDate.getFullYear() == endDate.getFullYear()) {
-				yearHeaderEl.textContent = startDate.getFullYear();
-			} else if (Math.floor(endDate.getFullYear() / 100) == Math.floor(startDate.getFullYear() / 100)) {
-				var startYear = String(startDate.getFullYear());
-				var endYear = String(endDate.getFullYear());
-				yearHeaderEl.textContent = startYear + "-" + endYear.substring(endYear.length - 2);
+			var startYear = startDate.getFullYear();
+			var endYear = endDate.getFullYear();
+			var startYearStr = String(startYear);
+			var endYearStr = String(endYear);
+
+			if (startYear == endYear) {
+				yearHeaderEl.textContent = startYearStr;
+			} else if (Math.floor(endYear / 100) == Math.floor(startYear / 100)) {
+				yearHeaderEl.textContent = startYearStr + "-" + endYearStr.substring(endYearStr.length - 2);
 			} else {
-				yearHeaderEl.textContent = String(startDate.getFullYear()) + "-" + String(endDate.getFullYear());
+				yearHeaderEl.textContent = startYearStr + "-" + endYearStr;
 			}
 			
-
 			// Update start weekday
 			var startWeekdayInputEl = document.getElementById("startWeekdayInput");
 			startWeekday = parseInt(startWeekdayInputEl.value);
 
 			fillTables(startDate, endDate, startWeekday);
 		}
+
+		function initialize() {
+			buildWeekLabels();
+			updateTableSettings();
+		}
 	</script>
 </head>
-<body onload="buildWeekLabels(); updateTable();">
-	<table onclick="toggleControls()">
+<body onload="initialize();">
+	<table onclick="toggleControls();">
 		<tr>
 			<td>
 				<table id="header">
@@ -352,15 +388,15 @@
 			</p>
 			<p>
 				<label>Start Date:</label>
-				<input type="date" id="startDateInput" onchange="updateTable();" />
+				<input type="date" id="startDateInput" onchange="updateTableSettings();" />
 			</p>
 			<p>
 				<label>End Date:</label>
-				<input type="date" id="endDateInput" onchange="updateTable();" />
+				<input type="date" id="endDateInput" onchange="updateTableSettings();" />
 			</p>
 			<p>
 				<label>Start Weekday:</label>
-				<select id="startWeekdayInput" value=0 onchange="updateTable();">
+				<select id="startWeekdayInput" value=0 onchange="updateTableSettings();">
 					<option value=0 selected="selected">Monday</option>
 					<option value=1>Tuesday</option>
 					<option value=2>Wednesday</option>
