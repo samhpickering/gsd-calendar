@@ -1,0 +1,117 @@
+:root {
+    --box-size: 2.4em;
+    --border-width: 1.5px;
+    --border-style: var(--border-width) solid #000000;
+    --border-radius: 0.4em;
+    --between-weeks: 0.7em;
+}
+
+@media print {
+    body {
+        padding-right: 3em;
+    }
+    #settings {
+        display: none;
+    }
+}
+
+body {
+    font-family: Calibri, 'Trebuchet MS', sans-serif;
+}
+table, tr, td {
+    box-sizing: border-box;
+    border-spacing: 0px;
+}
+
+#header {
+    width: 100%;
+}
+
+#titleHeader {
+    padding-left: 1.5em;
+    font-size: 32pt;
+    vertical-align: middle;
+}
+#yearHeader {
+    font-size: 40pt;
+    font-weight: bold;
+    text-align: right;
+    vertical-align: middle;
+    padding-right: 0.15em;
+}
+
+#container {
+    font-size: 7.6pt;
+}
+
+#monthLabels {
+    margin-right: 0.5em;
+    text-align: right;
+}
+#monthLabels td {
+    width: 6em;
+    height: var(--box-size);
+    padding-bottom: var(--border-width);
+}
+
+.dayLabelTable td {
+    text-align: center;
+    width: var(--box-size);
+    height: var(--box-size);
+}
+
+.weekTable {
+    text-align: center;
+    border-radius: var(--border-radius);
+    border: var(--border-style);
+    margin-right: var(--between-weeks);
+}
+.weekTable td {
+    width: var(--box-size);
+    height: var(--box-size);
+}
+.weekTable td {
+    border-right: var(--border-style);
+    border-bottom: var(--border-style);
+}
+.weekTable td:last-of-type {
+    border-right: 0;
+}
+.weekTable tr:last-of-type td {
+    border-bottom: 0;
+}
+
+.blankDay {
+    background-color: black;
+}
+
+#settings {
+    width: 24em;
+    border: 1px solid black;
+    margin: 2em 0 0 2em;
+    padding: 1em;
+}
+#settings h1 {
+    font-size: 14pt;
+    margin: 0 0 0.2em 0;
+}
+#settings form {
+    display: table;
+}
+#settings p {
+    display: table-row;
+}
+#settings label, #settings input {
+    display: table-cell;
+    margin-bottom: 0.3em;
+}
+#settings select, #settings input {
+    padding: 0.2em;
+}
+#settings label {
+    text-align: right;
+    padding-right: 0.5em;
+}
+#titleInput {
+    width: 18em;
+}
