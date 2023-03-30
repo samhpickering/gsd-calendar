@@ -191,6 +191,12 @@
             }
 
             function Settings(props) {
+                const weekdayOptions = [];
+                for (let i = 0; i < 7; i++) {
+                    const weekdayName = getDayName(getPrecedingWeekday(new Date(), i));
+                    weekdayOptions.push(<option key={i} value={i}>{weekdayName}</option>);
+                }
+
                 return (
                     <div id="settings">
                         <h1>Settings</h1>
@@ -210,13 +216,7 @@
                             <p>
                                 <label>Start Weekday:</label>
                                 <select id="startWeekdayInput" value={props.firstDayOfWeek} onChange={(e) => props.setFirstDayOfweek(e.target.value)}>
-                                    <option value={1}>Monday</option>
-                                    <option value={2}>Tuesday</option>
-                                    <option value={3}>Wednesday</option>
-                                    <option value={4}>Thursday</option>
-                                    <option value={5}>Friday</option>
-                                    <option value={6}>Saturday</option>
-                                    <option value={0}>Sunday</option>
+                                    {weekdayOptions}
                                 </select>
                             </p>
                         </form>
