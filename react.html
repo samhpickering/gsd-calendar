@@ -102,7 +102,7 @@
                 );
             }
 
-            function Container(props) {
+            function Calendar(props) {
                 const monthCount = 1
 				    + ((props.endDate.getFullYear() - props.startDate.getFullYear()) * 12)
 				    + (props.endDate.getMonth() - props.startDate.getMonth());
@@ -127,7 +127,7 @@
                 }
 
                 return (
-                    <div id="calendar">
+                    <div className="calendar">
                         <Month
                             date={firstOfMonth}
                             dayLabelsOnly={true}
@@ -143,49 +143,40 @@
             //     firstDayOfWeek: PropTypes.number.isRequired,
             // }
 
-            function Calendar(props) {
+            function Container(props) {
                 const [title, setTitle] = React.useState("Title");
                 const [startDate, setStartDate] = React.useState(new Date());
                 const [endDate, setEndDate] = React.useState(addMonths(startDate, 12));
                 const [firstDayOfWeek, setFirstDayOfweek] = React.useState(1); // Monday
 
-                const startYear = startDate.getFullYear();
-                const endYear = endDate.getFullYear();
-                let yearHeader = "";
+                return (
+                    <div className="container">
+                        <Header title={title} startDate={startDate} endDate={endDate} />
+                        <Calendar startDate={startDate} endDate={endDate} firstDayOfWeek={firstDayOfWeek} />
+                        <Settings title={title} setTitle={setTitle} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} firstDayOfWeek={firstDayOfWeek} setFirstDayOfweek={setFirstDayOfweek} />
+                    </div>
+                )
+            }
+
+            function Header(props) {
+                const startYear = props.startDate.getFullYear();
+                const endYear = props.endDate.getFullYear();
+                
+                let yearSpan = "";
 
                 if (startYear == endYear) {
-                    yearHeader = String(startYear);
+                    yearSpan = String(startYear);
                 } else if (Math.floor(endYear / 100) == Math.floor(startYear / 100)) {
                     const endYearStr = String(endYear);
-                    yearHeader = String(startYear) + "-" + endYearStr.substring(endYearStr.length - 2);
+                    yearSpan = String(startYear) + "-" + endYearStr.substring(endYearStr.length - 2);
                 } else {
-                    yearHeader = String(startYear) + "-" + String(endYear);
+                    yearSpan = String(startYear) + "-" + String(endYear);
                 }
 
                 return (
-                    <div>
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <table id="header">
-                                            <tbody>
-                                                <tr>
-                                                    <td id="titleHeader">{title}</td>
-                                                    <td id="yearHeader">{yearHeader}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                    <Container startDate={startDate} endDate={endDate} firstDayOfWeek={firstDayOfWeek} />
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <Settings title={title} setTitle={setTitle} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} firstDayOfWeek={firstDayOfWeek} setFirstDayOfweek={setFirstDayOfweek} />
+                    <div class="header">
+                        <div class="title">{props.title}</div>
+                        <div class="year">{yearSpan}</div>
                     </div>
                 )
             }
@@ -198,24 +189,24 @@
                 }
 
                 return (
-                    <div id="settings">
+                    <div className="settings">
                         <h1>Settings</h1>
                         <form>
                             <p>
                                 <label>Title:</label>
-                                <input type="text" id="titleInput" value={props.title} onChange={(e) => props.setTitle(e.target.value)} />
+                                <input type="text" className="titleInput" value={props.title} onChange={(e) => props.setTitle(e.target.value)} />
                             </p>
                             <p>
                                 <label>Start Date:</label>
-                                <input type="date" id="startDateInput" value={props.startDate.toISOString().slice(0,10)} onChange={(e) => props.setStartDate(new Date(e.target.valueAsNumber))} />
+                                <input type="date" value={props.startDate.toISOString().slice(0,10)} onChange={(e) => props.setStartDate(new Date(e.target.valueAsNumber))} />
                             </p>
                             <p>
                                 <label>End Date:</label>
-                                <input type="date" id="endDateInput" value={props.endDate.toISOString().slice(0,10)} onChange={(e) => props.setEndDate(new Date(e.target.valueAsNumber))} />
+                                <input type="date" value={props.endDate.toISOString().slice(0,10)} onChange={(e) => props.setEndDate(new Date(e.target.valueAsNumber))} />
                             </p>
                             <p>
                                 <label>Start Weekday:</label>
-                                <select id="startWeekdayInput" value={props.firstDayOfWeek} onChange={(e) => props.setFirstDayOfweek(e.target.value)}>
+                                <select value={props.firstDayOfWeek} onChange={(e) => props.setFirstDayOfweek(e.target.value)}>
                                     {weekdayOptions}
                                 </select>
                             </p>
@@ -225,7 +216,7 @@
             }
 
             const root = ReactDOM.createRoot(document.getElementById("root"));
-            root.render(<Calendar />);
+            root.render(<Container />);
         </script>
     </body>
 </html>
