@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
+	    <meta charset="utf-8" />
+	    <title>GSD Calendar (React)</title>
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
@@ -9,10 +11,14 @@
         <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
         <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
         <script type="text/babel">
-            function dayName(date) {
+            function mod(n, m) {
+                return ((n % m) + m) % m;
+            }
+
+            function getDayName(date) {
                 return date.toLocaleDateString(undefined, {weekday: "short"});
             }
-            function monthName(date) {
+            function getMonthName(date) {
                 return date.toLocaleDateString(undefined, {month: "long"});
             }
 
@@ -21,24 +27,32 @@
                 result.setDate(result.getDate() + days);
                 return result;
             }
+            function addMonths(date, months) {
+                var result = new Date(date);
+                result.setMonth(result.getMonth() + months);
+                return result;
+            }
 
-            function getMonday(date) {
-                var dateWeekday = (date.getDay() + 6) % 7; // 0 = Sun -> 0 = Mon
+            function getFirstOfMonth(date) {
+                var result = new Date(date);
+                result.setDate(1);
+                return result;
+            }
 
-                var monday = new Date(date);
-                monday.setDate(date.getDate() - dateWeekday);
-
-                return monday;
+            function getPrecedingWeekday(date, weekDay) {
+                const result = new Date(date);
+                const daysBefore = mod((date.getDay() - weekDay), 7);
+                result.setDate(result.getDate() - daysBefore);
+                return result
             }
 
             function WeekdayLabelRow(props) {
-                const labels = [];
-                for (let i = 0; i < 7; i++) {
-                    labels.push(<td>{dayName(addDays(props.firstDate, i))}</td>);
-                }
-
                 const weeks = [];
-                for (let i = 0; i < props.weekCount; i++) {
+                for (let i = 0; i < props.weekWidths.length; i++) {
+                    const labels = [];
+                    for (let j = 0; j < props.weekWidths[i]; j++) {
+                        labels.push(<td key={j}>{getDayName(addDays(props.firstDate, j))}</td>);
+                    }
                     weeks.push(<td key={i}><table className="dayLabelTable"><tbody><tr>{labels}</tr></tbody></table></td>)
                 }
                 return (
@@ -54,7 +68,7 @@
                 for (let i = 0; i < props.monthCount; i++) {
                     const monthDate = new Date(props.firstDate);
                     monthDate.setMonth(monthDate.getMonth() + i);
-                    rows.push(<tr key={i}><td>{monthName(monthDate)}</td></tr>);
+                    rows.push(<tr key={i}><td>{getMonthName(monthDate)}</td></tr>);
                 }
                 return (
                     <table id="monthLabels">
@@ -68,9 +82,22 @@
             function WeekTable(props) {
                 let rows = [];
                 for (let i = 0; i < props.monthCount; i++)  {
+                    const firstDate = addMonths(getFirstOfMonth(props.startDate), i);
+                    const leftDate = getPrecedingWeekday(firstDate, props.firstDayOfWeek);
+                    
                     let days = []
-                    for (let j = 0; j < 7; j++) {
-                        days.push(<td key={j}>{j}</td>)
+                    for (let j = 0; j < (props.width || 7); j++) {
+                        const date = addDays(leftDate, j + props.dayOffset);
+                        const blankDay = (
+                            date < props.startDate
+                            || date > props.endDate
+                            || date.getMonth() != firstDate.getMonth()
+                        );
+                        days.push(
+                            <td key={j} className={blankDay ? "blankDay" : ""}>
+                                {blankDay ? "" : date.getDate()}
+                            </td>
+                        )
                     }
                     rows.push(<tr key={i}>{days}</tr>)
                 }
@@ -88,34 +115,34 @@
 				    + ((props.endDate.getFullYear() - props.startDate.getFullYear()) * 12)
 				    + (props.endDate.getMonth() - props.startDate.getMonth());
                 
-                const firstDate = getMonday(props.startDate);
-                firstDate.setDate(firstDate.getDate() + props.firstDayOfWeek);
+                const firstDate = getFirstOfMonth(props.startDate);
+                const topLeftDate = getPrecedingWeekday(firstDate, props.firstDayOfWeek);
 
                 return (
                     <table id="container">
                         <tbody>
-                            <WeekdayLabelRow firstDate={firstDate} weekCount={6} />
+                            <WeekdayLabelRow firstDate={topLeftDate} weekWidths={[7, 7, 7, 7, 7, 2]} />
                             <tr>
                                 <td>
                                     <MonthLabels firstDate={firstDate} monthCount={monthCount} />
                                 </td>
                                 <td>
-                                    <WeekTable firstDate={firstDate} startDate={props.startDate} dayOffset={0} monthCount={monthCount} />
+                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={0} monthCount={monthCount} />
                                 </td>
                                 <td>
-                                    <WeekTable firstDate={firstDate} startDate={props.startDate} dayOffset={7} monthCount={monthCount} />
+                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={7} monthCount={monthCount} />
                                 </td>
                                 <td>
-                                    <WeekTable firstDate={firstDate} startDate={props.startDate} dayOffset={14} monthCount={monthCount} />
+                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={14} monthCount={monthCount} />
                                 </td>
                                 <td>
-                                    <WeekTable firstDate={firstDate} startDate={props.startDate} dayOffset={21} monthCount={monthCount} />
+                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={21} monthCount={monthCount} />
                                 </td>
                                 <td>
-                                    <WeekTable firstDate={firstDate} startDate={props.startDate} dayOffset={28} monthCount={monthCount} />
+                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={28} monthCount={monthCount} />
                                 </td>
                                 <td>
-                                    <WeekTable firstDate={firstDate} startDate={props.startDate} dayOffset={35} monthCount={monthCount} />
+                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={35} width={2} monthCount={monthCount} />
                                 </td>
                             </tr>
                         </tbody>
@@ -128,14 +155,89 @@
             //     firstDayOfWeek: PropTypes.number.isRequired,
             // }
 
-            const startDate = new Date();
+            function Calendar(props) {
+                const [title, setTitle] = React.useState("Title");
+                const [startDate, setStartDate] = React.useState(new Date());
+                const [endDate, setEndDate] = React.useState(addMonths(startDate, 12));
+                const [firstDayOfWeek, setFirstDayOfweek] = React.useState(1); // Monday
 
-            const endDate = new Date()
-            endDate.setFullYear(endDate.getFullYear() + 1);
-            endDate.setDate(endDate.getDate() - 1);
+                const startYear = startDate.getFullYear();
+                const endYear = endDate.getFullYear();
+                let yearHeader = "";
+
+                if (startYear == endYear) {
+                    yearHeader = String(startYear);
+                } else if (Math.floor(endYear / 100) == Math.floor(startYear / 100)) {
+                    const endYearStr = String(endYear);
+                    yearHeader = String(startYear) + "-" + endYearStr.substring(endYearStr.length - 2);
+                } else {
+                    yearHeader = String(startYear) + "-" + String(endYear);
+                }
+
+                return (
+                    <div>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <table id="header">
+                                            <tbody>
+                                                <tr>
+                                                    <td id="titleHeader">{title}</td>
+                                                    <td id="yearHeader">{yearHeader}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                    <Container startDate={startDate} endDate={endDate} firstDayOfWeek={firstDayOfWeek} />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <Settings title={title} setTitle={setTitle} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} firstDayOfWeek={firstDayOfWeek} setFirstDayOfweek={setFirstDayOfweek} />
+                    </div>
+                )
+            }
+
+            function Settings(props) {
+                return (
+                    <div id="settings">
+                        <h1>Settings</h1>
+                        <form>
+                            <p>
+                                <label>Title:</label>
+                                <input type="text" id="titleInput" value={props.title} onChange={(e) => props.setTitle(e.target.value)} />
+                            </p>
+                            <p>
+                                <label>Start Date:</label>
+                                <input type="date" id="startDateInput" value={props.startDate.toISOString().slice(0,10)} onChange={(e) => props.setStartDate(new Date(e.target.valueAsNumber))} />
+                            </p>
+                            <p>
+                                <label>End Date:</label>
+                                <input type="date" id="endDateInput" value={props.endDate.toISOString().slice(0,10)} onChange={(e) => props.setEndDate(new Date(e.target.valueAsNumber))} />
+                            </p>
+                            <p>
+                                <label>Start Weekday:</label>
+                                <select id="startWeekdayInput" value={props.firstDayOfWeek} onChange={(e) => props.setFirstDayOfweek(e.target.value)}>
+                                    <option value={1}>Monday</option>
+                                    <option value={2}>Tuesday</option>
+                                    <option value={3}>Wednesday</option>
+                                    <option value={4}>Thursday</option>
+                                    <option value={5}>Friday</option>
+                                    <option value={6}>Saturday</option>
+                                    <option value={0}>Sunday</option>
+                                </select>
+                            </p>
+                        </form>
+                    </div>
+                );
+            }
 
             const root = ReactDOM.createRoot(document.getElementById("root"));
-            root.render(<Container startDate={startDate} endDate={endDate} firstDayOfWeek={0} />);
+            root.render(<Calendar />);
         </script>
     </body>
 </html>
