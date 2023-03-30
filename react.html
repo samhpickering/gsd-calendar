@@ -15,6 +15,13 @@
                 return ((n % m) + m) % m;
             }
 
+            function classNames(map) {
+                return Object.entries(map)
+                    .filter(([key, value]) => value)
+                    .map(([key, value]) => key)
+                    .join(" ");
+            }
+
             function getDayName(date) {
                 return date.toLocaleDateString(undefined, {weekday: "short"});
             }
@@ -46,107 +53,88 @@
                 return result
             }
 
-            function WeekdayLabelRow(props) {
-                const weeks = [];
-                for (let i = 0; i < props.weekWidths.length; i++) {
-                    const labels = [];
-                    for (let j = 0; j < props.weekWidths[i]; j++) {
-                        labels.push(<td key={j}>{getDayName(addDays(props.firstDate, j))}</td>);
-                    }
-                    weeks.push(<td key={i}><table className="dayLabelTable"><tbody><tr>{labels}</tr></tbody></table></td>)
+            function Week(props) {
+                const noBorder = (props.dayLabelsOnly ? " no-border" : "");
+
+                const days = [];
+                for (let i = 0; i < props.length; i++) {
+                    const date = addDays(props.date, i);
+                    const blackedOut = !props.dayLabelsOnly && props.blackOut(date);
+                    days.push(
+                        <div key={i} className={classNames({
+                            "day": true,
+                            "no-border": props.dayLabelsOnly,
+                            "blackout": blackedOut,
+                        })}>
+                            {blackedOut ? "" : (
+                                props.dayLabelsOnly ? getDayName(date) : date.getDate()
+                            )}
+                        </div>
+                    );
                 }
                 return (
-                    <tr>
-                        <td></td>
-                        {weeks}
-                    </tr>
-                )
+                    <div className={classNames({
+                        "week": true,
+                        "no-border": props.dayLabelsOnly,
+                    })}>
+                        {days}
+                    </div>
+                );
             }
 
-            function MonthLabels(props) {
-                let rows = [];
-                for (let i = 0; i < props.monthCount; i++) {
-                    const monthDate = new Date(props.firstDate);
-                    monthDate.setMonth(monthDate.getMonth() + i);
-                    rows.push(<tr key={i}><td>{getMonthName(monthDate)}</td></tr>);
-                }
+            function Month(props) {
+                const firstDate = getPrecedingWeekday(props.date, props.firstDayOfWeek);
+                const blackOut = (date) => date.getMonth() != props.date.getMonth() || date < props.startDate || date > props.endDate;
                 return (
-                    <table id="monthLabels">
-                        <tbody>
-                            {rows}
-                        </tbody>
-                    </table>
-                )
+                    <div className={classNames({
+                        "month": true,
+                        "first-month": props.isFirstMonth,
+                        "last-month": props.isLastMonth,
+                    })}>
+                        <div className="label">{props.dayLabelsOnly ? "" : getMonthName(props.date)}</div>
+                        <Week length={7} date={addDays(firstDate,  0)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
+                        <Week length={7} date={addDays(firstDate,  7)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
+                        <Week length={7} date={addDays(firstDate, 14)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
+                        <Week length={7} date={addDays(firstDate, 21)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
+                        <Week length={7} date={addDays(firstDate, 28)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
+                        <Week length={2} date={addDays(firstDate, 35)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
+                    </div>
+                );
             }
 
-            function WeekTable(props) {
-                let rows = [];
-                for (let i = 0; i < props.monthCount; i++)  {
-                    const firstDate = addMonths(getFirstOfMonth(props.startDate), i);
-                    const leftDate = getPrecedingWeekday(firstDate, props.firstDayOfWeek);
-                    
-                    let days = []
-                    for (let j = 0; j < (props.width || 7); j++) {
-                        const date = addDays(leftDate, j + props.dayOffset);
-                        const blankDay = (
-                            date < props.startDate
-                            || date > props.endDate
-                            || date.getMonth() != firstDate.getMonth()
-                        );
-                        days.push(
-                            <td key={j} className={blankDay ? "blankDay" : ""}>
-                                {blankDay ? "" : date.getDate()}
-                            </td>
-                        )
-                    }
-                    rows.push(<tr key={i}>{days}</tr>)
-                }
-                return (
-                    <table className="weekTable">
-                        <tbody>
-                            {rows}
-                        </tbody>
-                    </table>
-                )
-            }
-
-            function Container(props) {    
+            function Container(props) {
                 const monthCount = 1
 				    + ((props.endDate.getFullYear() - props.startDate.getFullYear()) * 12)
 				    + (props.endDate.getMonth() - props.startDate.getMonth());
-                
-                const firstDate = getFirstOfMonth(props.startDate);
-                const topLeftDate = getPrecedingWeekday(firstDate, props.firstDayOfWeek);
+
+                const firstOfMonth = getFirstOfMonth(props.startDate);
+
+                const months = [];
+                for (let m = 0; m < monthCount; m++) {
+                    const isFirstMonth = (m == 0);
+                    const isLastMonth = (m == monthCount - 1);
+                    months.push(
+                        <Month
+                            key={m}
+                            date={addMonths(firstOfMonth, m)}
+                            startDate={props.startDate}
+                            endDate={props.endDate}
+                            firstDayOfWeek={props.firstDayOfWeek}
+                            isFirstMonth={isFirstMonth}
+                            isLastMonth={isLastMonth}
+                        />
+                    )
+                }
 
                 return (
-                    <table id="container">
-                        <tbody>
-                            <WeekdayLabelRow firstDate={topLeftDate} weekWidths={[7, 7, 7, 7, 7, 2]} />
-                            <tr>
-                                <td>
-                                    <MonthLabels firstDate={firstDate} monthCount={monthCount} />
-                                </td>
-                                <td>
-                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={0} monthCount={monthCount} />
-                                </td>
-                                <td>
-                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={7} monthCount={monthCount} />
-                                </td>
-                                <td>
-                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={14} monthCount={monthCount} />
-                                </td>
-                                <td>
-                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={21} monthCount={monthCount} />
-                                </td>
-                                <td>
-                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={28} monthCount={monthCount} />
-                                </td>
-                                <td>
-                                    <WeekTable startDate={props.startDate} endDate={props.endDate} firstDayOfWeek={props.firstDayOfWeek} dayOffset={35} width={2} monthCount={monthCount} />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div id="calendar">
+                        <Month
+                            date={firstOfMonth}
+                            dayLabelsOnly={true}
+                            firstDayOfWeek={props.firstDayOfWeek}
+                        />
+                        {months}
+                    </div>
                 )
             }
             // Container.propTypes = {

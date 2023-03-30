@@ -6,112 +6,77 @@
     --between-weeks: 0.7em;
 }
 
-@media print {
-    body {
-        padding-right: 3em;
-    }
-    #settings {
-        display: none;
-    }
-}
-
 body {
     font-family: Calibri, 'Trebuchet MS', sans-serif;
 }
-table, tr, td {
-    box-sizing: border-box;
-    border-spacing: 0px;
-}
 
-#header {
-    width: 100%;
-}
-
-#titleHeader {
-    padding-left: 1.5em;
-    font-size: 32pt;
-    vertical-align: middle;
-}
-#yearHeader {
-    font-size: 40pt;
-    font-weight: bold;
-    text-align: right;
-    vertical-align: middle;
-    padding-right: 0.15em;
-}
-
-#container {
+#calendar {
     font-size: 7.6pt;
+    display: inline-block;
 }
 
-#monthLabels {
-    margin-right: 0.5em;
-    text-align: right;
-}
-#monthLabels td {
-    width: 6em;
-    height: var(--box-size);
-    padding-bottom: var(--border-width);
+.no-border {
+    border-color: transparent !important;
 }
 
-.dayLabelTable td {
-    text-align: center;
+.blackout {
+    background: black;
+}
+
+/* Grid */
+
+.month {
+    display: grid;
+    grid-template-columns: 6em repeat(6, auto);
+    grid-gap: var(--between-weeks);
+}
+
+.week {
+    display: grid;
+    grid-template-columns: repeat(7, auto);
+}
+
+.day {
     width: var(--box-size);
     height: var(--box-size);
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.weekTable {
-    text-align: center;
-    border-radius: var(--border-radius);
-    border: var(--border-style);
-    margin-right: var(--between-weeks);
+.label {
+    display: flex;
+    align-items: center;
+    justify-content: right;
 }
-.weekTable td {
-    width: var(--box-size);
-    height: var(--box-size);
+
+/* Borders */
+
+.week {
+    border-left: var(--border-style);
+    border-right: var(--border-style);
 }
-.weekTable td {
+
+.first-month .week {
+    border-top: var(--border-style);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.last-month .week {
+    border-bottom: var(--border-style);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+.day {
     border-right: var(--border-style);
     border-bottom: var(--border-style);
 }
-.weekTable td:last-of-type {
-    border-right: 0;
-}
-.weekTable tr:last-of-type td {
-    border-bottom: 0;
+
+.day:last-of-type {
+    border-right: none;
 }
 
-.blankDay {
-    background-color: black;
-}
-
-#settings {
-    width: 24em;
-    border: 1px solid black;
-    margin: 2em 0 0 2em;
-    padding: 1em;
-}
-#settings h1 {
-    font-size: 14pt;
-    margin: 0 0 0.2em 0;
-}
-#settings form {
-    display: table;
-}
-#settings p {
-    display: table-row;
-}
-#settings label, #settings input {
-    display: table-cell;
-    margin-bottom: 0.3em;
-}
-#settings select, #settings input {
-    padding: 0.2em;
-}
-#settings label {
-    text-align: right;
-    padding-right: 0.5em;
-}
-#titleInput {
-    width: 18em;
+.last-month .day {
+    border-bottom: none;
 }
