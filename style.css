@@ -34,11 +34,12 @@ body {
 .header {
     display: grid;
     grid-template-columns: auto auto;
+    padding-bottom: 0.5em;
 }
 
 .title {
     font-size: 32pt;
-    padding-left: 1.6em;
+    padding-left: 1.5em;
 
     display: flex;
     align-items: center;
@@ -47,7 +48,7 @@ body {
 .year {
     font-size: 40pt;
     font-weight: bold;
-    padding-right: 0.15em;
+
     display: flex;
     align-items: center;
     justify-content: right;

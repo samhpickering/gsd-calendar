@@ -53,23 +53,27 @@
                 return result
             }
 
-            function Week(props) {
-                const noBorder = (props.dayLabelsOnly ? " no-border" : "");
+            function Day(props) {
+                return (
+                    <div className={classNames({
+                        "day": true,
+                        "no-border": props.isLabel,
+                        "blackout": props.blackedOut,
+                    })}>
+                        {props.blackedOut ? "" : (
+                            props.isLabel ? getDayName(props.date) : props.date.getDate()
+                        )}
+                    </div>
+                )
+            }
 
+            function Week(props) {
                 const days = [];
                 for (let i = 0; i < props.length; i++) {
                     const date = addDays(props.date, i);
-                    const blackedOut = !props.dayLabelsOnly && props.blackOut(date);
+                    const blackedOut = !props.dayLabelsOnly && !props.dateInRange(date);
                     days.push(
-                        <div key={i} className={classNames({
-                            "day": true,
-                            "no-border": props.dayLabelsOnly,
-                            "blackout": blackedOut,
-                        })}>
-                            {blackedOut ? "" : (
-                                props.dayLabelsOnly ? getDayName(date) : date.getDate()
-                            )}
-                        </div>
+                        <Day key={i} date={date} isLabel={props.dayLabelsOnly} blackedOut={blackedOut} />
                     );
                 }
                 return (
@@ -84,7 +88,7 @@
 
             function Month(props) {
                 const firstDate = getPrecedingWeekday(props.date, props.firstDayOfWeek);
-                const blackOut = (date) => date.getMonth() != props.date.getMonth() || date < props.startDate || date > props.endDate;
+                const dateInRange = (date) => date.getMonth() == props.date.getMonth() && date >= props.startDate && date <= props.endDate;
                 return (
                     <div className={classNames({
                         "month": true,
@@ -92,12 +96,12 @@
                         "last-month": props.isLastMonth,
                     })}>
                         <div className="label">{props.dayLabelsOnly ? "" : getMonthName(props.date)}</div>
-                        <Week length={7} date={addDays(firstDate,  0)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
-                        <Week length={7} date={addDays(firstDate,  7)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
-                        <Week length={7} date={addDays(firstDate, 14)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
-                        <Week length={7} date={addDays(firstDate, 21)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
-                        <Week length={7} date={addDays(firstDate, 28)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
-                        <Week length={2} date={addDays(firstDate, 35)} dayLabelsOnly={props.dayLabelsOnly} blackOut={blackOut} />
+                        <Week length={7} date={addDays(firstDate,  0)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={7} date={addDays(firstDate,  7)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={7} date={addDays(firstDate, 14)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={7} date={addDays(firstDate, 21)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={7} date={addDays(firstDate, 28)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={2} date={addDays(firstDate, 35)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
                     </div>
                 );
             }
@@ -174,9 +178,9 @@
                 }
 
                 return (
-                    <div class="header">
-                        <div class="title">{props.title}</div>
-                        <div class="year">{yearSpan}</div>
+                    <div className="header">
+                        <div className="title">{props.title}</div>
+                        <div className="year">{yearSpan}</div>
                     </div>
                 )
             }
@@ -186,6 +190,13 @@
                 for (let i = 0; i < 7; i++) {
                     const weekdayName = getDayName(getPrecedingWeekday(new Date(), i));
                     weekdayOptions.push(<option key={i} value={i}>{weekdayName}</option>);
+                }
+
+                function convertDate(event, callback) {
+                    if (!isNaN(event.target.valueAsNumber)) {
+                        const date = new Date(event.target.valueAsNumber);
+                        callback(date);
+                    }
                 }
 
                 return (
@@ -198,11 +209,11 @@
                             </p>
                             <p>
                                 <label>Start Date:</label>
-                                <input type="date" value={props.startDate.toISOString().slice(0,10)} onChange={(e) => props.setStartDate(new Date(e.target.valueAsNumber))} />
+                                <input type="date" value={props.startDate.toISOString().slice(0,10)} onChange={(e) => convertDate(e, props.setStartDate)} />
                             </p>
                             <p>
                                 <label>End Date:</label>
-                                <input type="date" value={props.endDate.toISOString().slice(0,10)} onChange={(e) => props.setEndDate(new Date(e.target.valueAsNumber))} />
+                                <input type="date" value={props.endDate.toISOString().slice(0,10)} onChange={(e) => convertDate(e, props.setEndDate)} />
                             </p>
                             <p>
                                 <label>Start Weekday:</label>
