@@ -25,7 +25,7 @@ body {
     border-color: transparent !important;
 }
 
-.blackout {
+.blacked-out {
     background: black;
 }
 
@@ -42,7 +42,7 @@ body {
     padding-left: 1.5em;
 
     display: flex;
-    align-items: center;
+    align-items: end;
 }
 
 .year {
@@ -50,14 +50,14 @@ body {
     font-weight: bold;
 
     display: flex;
-    align-items: center;
+    align-items: end;
     justify-content: right;
 }
 
 /* Grid */
 
 .calendar {
-    font-size: 7.6pt;
+    font-size: 7pt;
     display: inline-block;
 }
 
@@ -73,7 +73,6 @@ body {
 }
 
 .day {
-    box-sizing: border-box;
     width: var(--box-size);
     height: var(--box-size);
     
