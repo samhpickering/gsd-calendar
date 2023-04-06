@@ -2,4 +2,4 @@
 
 A printable calendar for habit tracking.
 
-I am using this repo to teach myself GitHub/git, any suggestions are welcome.
+This version has been rewritten in React using a CSS grid layout.
