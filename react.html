@@ -22,51 +22,47 @@
                     .join(" ");
             }
 
-            function getShortWeekdayName(date) {
-                return date.toLocaleDateString(undefined, {weekday: "short"});
-            }
-            function getLongWeekdayName(date) {
-                return date.toLocaleDateString(undefined, {weekday: "long"});
-            }
-            function getMonthName(date) {
-                return date.toLocaleDateString(undefined, {month: "long"});
-            }
+            class CalendarDate {
+                #date;
+                constructor() {
+                    const date = new Date(...arguments);
+                    this.#date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                }
 
-            function addDays(date, days) {
-                var result = new Date(date);
-                result.setDate(result.getDate() + days);
-                return NormalisedDate(result);
-            }
-            function addMonths(date, months) {
-                var result = new Date(date);
-                result.setMonth(result.getMonth() + months);
-                return NormalisedDate(result);
-            }
+                getFullYear() { return this.#date.getFullYear(); }
+                getMonth() { return this.#date.getMonth(); }
+                getDate() { return this.#date.getDate(); }
+                getDay() { return this.#date.getDay(); }
 
-            function getFirstOfMonth(date) {
-                var result = new Date(date);
-                result.setDate(1);
-                return NormalisedDate(result);
-            }
+                toDate() { return new Date(this.#date); }
 
-            function getPrecedingWeekday(date, weekDay) {
-                const result = new Date(date);
-                const daysBefore = mod((date.getDay() - weekDay), 7);
-                result.setDate(result.getDate() - daysBefore);
-                return NormalisedDate(result);
-            }
+                toValueString() {
+                    return (
+                        String(this.getFullYear()).padStart(4, "0")
+                        + "-" +
+                        String(this.getMonth() + 1).padStart(2, "0")
+                        + "-" +
+                        String(this.getDate()).padStart(2, "0")
+                    )
+                }
+                format(format) {
+                    return this.#date.toLocaleDateString(undefined, format);
+                }
 
-            function toValueString(date) {
-                return String(date.getFullYear()).padStart(4, "0") + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
-            }
-
-            function NormalisedDate() {
-                const date = new Date(...arguments);
-                return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                add(years, months, days) {
+                    return new CalendarDate(this.getFullYear() + years, this.getMonth() + months, this.getDate() + days);
+                }
+                getFirstOfMonth() {
+                    return new CalendarDate(this.getFullYear(), this.getMonth(), 1);
+                }
+                getPrecedingWeekday(weekDay) {
+                    const daysBefore = mod(this.getDay() - weekDay, 7);
+                    return this.add(0, 0, -daysBefore);
+                }
             }
 
             function Day(props) {
-                const text = props.isLabel ? getShortWeekdayName(props.date) : props.date.getDate();
+                const text = props.isLabel ? props.date.format({weekday: "short"}) : props.date.getDate();
                 return (
                     <div className={classNames({
                         "day": true,
@@ -81,7 +77,7 @@
             function Week(props) {
                 const days = [];
                 for (let day = 0; day < props.length; day++) {
-                    const date = addDays(props.date, day);
+                    const date = props.date.add(0, 0, day);
                     const isBlackedOut = !props.dayLabelsOnly && !props.dateInRange(date);
                     days.push(
                         <Day key={day} date={date} isLabel={props.dayLabelsOnly} isBlackedOut={isBlackedOut} />
@@ -98,37 +94,37 @@
             }
 
             function Month(props) {
-                const firstDate = getPrecedingWeekday(props.date, props.firstDayOfWeek);
-                const dateInRange = (date) => date.getMonth() == props.date.getMonth() && date >= props.startDate && date <= props.endDate;
+                const firstDate = props.date.getPrecedingWeekday(props.firstDayOfWeek);
+                const dateInRange = (date) => date.getMonth() == props.date.getMonth() && date.toDate() >= props.startDate.toDate() && date.toDate() <= props.endDate.toDate();
                 return (
                     <div className={classNames({
                         "month": true,
                         "first-month": props.isFirstMonth,
                         "last-month": props.isLastMonth,
                     })}>
-                        <div className="label">{props.dayLabelsOnly ? "" : getMonthName(props.date)}</div>
-                        <Week length={7} date={addDays(firstDate,  0)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={7} date={addDays(firstDate,  7)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={7} date={addDays(firstDate, 14)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={7} date={addDays(firstDate, 21)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={7} date={addDays(firstDate, 28)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={2} date={addDays(firstDate, 35)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <div className="label">{props.dayLabelsOnly ? "" : props.date.format({month: "long"})}</div>
+                        <Week length={7} date={firstDate.add(0, 0,  0)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={7} date={firstDate.add(0, 0,  7)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={7} date={firstDate.add(0, 0, 14)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={7} date={firstDate.add(0, 0, 21)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={7} date={firstDate.add(0, 0, 28)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <Week length={2} date={firstDate.add(0, 0, 35)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
                     </div>
                 );
             }
 
             function Calendar(props) {
-                let currentMonth = getFirstOfMonth(props.startDate);
+                let currentMonth = props.startDate.getFirstOfMonth();
                 let isFirstMonth = true;
                 
                 const months = [];
-                while (currentMonth <= props.endDate) {
-                    const nextMonth = addMonths(currentMonth, 1);
-                    const isLastMonth = nextMonth > props.endDate;
+                while (currentMonth.toDate() <= props.endDate.toDate()) {
+                    const nextMonth = currentMonth.add(0, 1 ,0);
+                    const isLastMonth = nextMonth.toDate() > props.endDate.toDate();
 
                     months.push(
                         <Month
-                            key={toValueString(currentMonth)}
+                            key={currentMonth.toValueString()}
                             date={currentMonth}
                             startDate={props.startDate}
                             endDate={props.endDate}
@@ -156,8 +152,8 @@
 
             function Container(props) {
                 const [title, setTitle] = React.useState("Title");
-                const [startDate, setStartDate] = React.useState(NormalisedDate());
-                const [endDate, setEndDate] = React.useState(addMonths(startDate, 12));
+                const [startDate, setStartDate] = React.useState(new CalendarDate());
+                const [endDate, setEndDate] = React.useState(startDate.add(1, 0, 0));
                 const [firstDayOfWeek, setFirstDayOfweek] = React.useState(1); // Monday
 
                 return (
@@ -193,17 +189,17 @@
             }
 
             function Settings(props) {
-                const today = NormalisedDate();
+                const today = new CalendarDate();
 
                 const weekdayOptions = [];
                 for (let weekday = 0; weekday < 7; weekday++) {
-                    const weekdayName = getLongWeekdayName(getPrecedingWeekday(today, weekday));
+                    const weekdayName = today.getPrecedingWeekday(weekday).format({weekday: "long"});
                     weekdayOptions.push(<option key={weekday} value={weekday}>{weekdayName}</option>);
                 }
 
                 function convertDate(event, callback) {
                     if (!isNaN(event.target.valueAsNumber)) {
-                        const date = NormalisedDate(event.target.valueAsNumber);
+                        const date = new CalendarDate(event.target.valueAsNumber);
                         callback(date);
                     }
                 }
@@ -218,11 +214,11 @@
                             </p>
                             <p>
                                 <label>Start Date:</label>
-                                <input type="date" defaultValue={toValueString(props.startDate)} onChange={(e) => convertDate(e, props.setStartDate)} />
+                                <input type="date" defaultValue={props.startDate.toValueString()} onChange={(e) => convertDate(e, props.setStartDate)} />
                             </p>
                             <p>
                                 <label>End Date:</label>
-                                <input type="date" defaultValue={toValueString(props.endDate)} onChange={(e) => convertDate(e, props.setEndDate)} />
+                                <input type="date" defaultValue={props.endDate.toValueString()} onChange={(e) => convertDate(e, props.setEndDate)} />
                             </p>
                             <p>
                                 <label>Start Weekday:</label>
