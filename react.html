@@ -158,9 +158,9 @@
 
                 return (
                     <div className="container">
-                        <Header title={title} startDate={startDate} endDate={endDate} />
-                        <Calendar startDate={startDate} endDate={endDate} firstDayOfWeek={firstDayOfWeek} />
-                        <Settings title={title} setTitle={setTitle} startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate} firstDayOfWeek={firstDayOfWeek} setFirstDayOfweek={setFirstDayOfweek} />
+                        <Header   {...{title, startDate, endDate}} />
+                        <Calendar {...{startDate, endDate, firstDayOfWeek}} />
+                        <Settings {...{title, setTitle, startDate, setStartDate, endDate, setEndDate, firstDayOfWeek, setFirstDayOfweek}} />
                     </div>
                 )
             }
