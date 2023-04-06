@@ -197,7 +197,7 @@
                     weekdayOptions.push(<option key={weekday} value={weekday}>{weekdayName}</option>);
                 }
 
-                function convertDate(event, callback) {
+                function handleDateChange(event, callback) {
                     if (!isNaN(event.target.valueAsNumber)) {
                         const date = new CalendarDate(event.target.valueAsNumber);
                         callback(date);
@@ -214,11 +214,11 @@
                             </p>
                             <p>
                                 <label>Start Date:</label>
-                                <input type="date" defaultValue={props.startDate.toValueString()} onChange={(e) => convertDate(e, props.setStartDate)} />
+                                <input type="date" defaultValue={props.startDate.toValueString()} onChange={(e) => handleDateChange(e, props.setStartDate)} />
                             </p>
                             <p>
                                 <label>End Date:</label>
-                                <input type="date" defaultValue={props.endDate.toValueString()} onChange={(e) => convertDate(e, props.setEndDate)} />
+                                <input type="date" defaultValue={props.endDate.toValueString()} onChange={(e) => handleDateChange(e, props.setEndDate)} />
                             </p>
                             <p>
                                 <label>Start Weekday:</label>
