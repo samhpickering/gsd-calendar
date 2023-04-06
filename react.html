@@ -154,13 +154,13 @@
                 const [title, setTitle] = React.useState("Title");
                 const [startDate, setStartDate] = React.useState(new CalendarDate());
                 const [endDate, setEndDate] = React.useState(startDate.add(1, 0, 0));
-                const [firstDayOfWeek, setFirstDayOfweek] = React.useState(1); // Monday
+                const [firstDayOfWeek, setFirstDayOfWeek] = React.useState(1); // Monday
 
                 return (
                     <div className="container">
                         <Header   {...{title, startDate, endDate}} />
                         <Calendar {...{startDate, endDate, firstDayOfWeek}} />
-                        <Settings {...{title, setTitle, startDate, setStartDate, endDate, setEndDate, firstDayOfWeek, setFirstDayOfweek}} />
+                        <Settings {...{title, setTitle, startDate, setStartDate, endDate, setEndDate, firstDayOfWeek, setFirstDayOfWeek}} />
                     </div>
                 )
             }
@@ -222,7 +222,7 @@
                             </p>
                             <p>
                                 <label>Start Weekday:</label>
-                                <select value={props.firstDayOfWeek} onChange={(e) => props.setFirstDayOfweek(e.target.value)}>
+                                <select value={props.firstDayOfWeek} onChange={(e) => props.setFirstDayOfWeek(e.target.value)}>
                                     {weekdayOptions}
                                 </select>
                             </p>
