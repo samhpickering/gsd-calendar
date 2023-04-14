@@ -35,6 +35,9 @@
                 getDay() { return this.#date.getDay(); }
 
                 toDate() { return new Date(this.#date); }
+                between(startDate, endDate) {
+                    return this.toDate() >= startDate.toDate() && this.toDate() <= endDate.toDate();
+                }
 
                 toValueString() {
                     return (
@@ -95,7 +98,7 @@
 
             function Month({firstOfMonth, startDate, endDate, firstDayOfWeek, isFirstMonth, isLastMonth, isLabel}) {
                 const firstDate = firstOfMonth.getPrecedingWeekday(firstDayOfWeek);
-                const dateInRange = (date) => date.getMonth() == firstOfMonth.getMonth() && date.toDate() >= startDate.toDate() && date.toDate() <= endDate.toDate();
+                const dateInRange = (date) => date.getMonth() == firstOfMonth.getMonth() && date.between(startDate, endDate);
                 return (
                     <div className={classNames({
                         "month": true,
@@ -118,9 +121,9 @@
                 let isFirstMonth = true;
                 
                 const months = [];
-                while (currentMonth.toDate() <= endDate.toDate()) {
+                while (true) {
                     const nextFirstOfMonth = firstOfMonth.add(0, 1 ,0).getFirstOfMonth();
-                    const isLastMonth = nextFirstOfMonth.toDate() > endDate.toDate();
+                    const isLastMonth = !nextFirstOfMonth.between(startDate, endDate);
 
                     months.push(
                         <Month
@@ -131,6 +134,8 @@
 
                     firstOfMonth = nextFirstOfMonth;
                     isFirstMonth = false;
+
+                    if (isLastMonth) break;
                 }
 
                 return (
