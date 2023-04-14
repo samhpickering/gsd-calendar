@@ -61,96 +61,90 @@
                 }
             }
 
-            function Day(props) {
-                const text = props.isLabel ? props.date.format({weekday: "short"}) : props.date.getDate();
+            function Day({date, isLabel, isBlackedOut}) {
+                const text = isLabel ? date.format({weekday: "short"}) : date.getDate();
                 return (
                     <div className={classNames({
                         "day": true,
-                        "no-border": props.isLabel,
-                        "blacked-out": props.isBlackedOut,
+                        "no-border": isLabel,
+                        "blacked-out": isBlackedOut,
                     })}>
-                        {props.isBlackedOut ? null : text}
+                        {isBlackedOut ? null : text}
                     </div>
                 )
             }
 
-            function Week(props) {
+            function Week({length, date, isLabel, dateInRange}) {
                 const days = [];
-                for (let day = 0; day < props.length; day++) {
-                    const date = props.date.add(0, 0, day);
-                    const isBlackedOut = !props.dayLabelsOnly && !props.dateInRange(date);
+                for (let dayNumber = 0; dayNumber < length; dayNumber++) {
+                    const day = date.add(0, 0, dayNumber);
+                    const isBlackedOut = !isLabel && !dateInRange(day);
                     days.push(
-                        <Day key={day} date={date} isLabel={props.dayLabelsOnly} isBlackedOut={isBlackedOut} />
+                        <Day key={dayNumber} date={day} isLabel={isLabel} isBlackedOut={isBlackedOut} />
                     );
                 }
                 return (
                     <div className={classNames({
                         "week": true,
-                        "no-border": props.dayLabelsOnly,
+                        "no-border": isLabel,
                     })}>
                         {days}
                     </div>
                 );
             }
 
-            function Month(props) {
-                const firstDate = props.date.getPrecedingWeekday(props.firstDayOfWeek);
-                const dateInRange = (date) => date.getMonth() == props.date.getMonth() && date.toDate() >= props.startDate.toDate() && date.toDate() <= props.endDate.toDate();
+            function Month({firstOfMonth, startDate, endDate, firstDayOfWeek, isFirstMonth, isLastMonth, isLabel}) {
+                const firstDate = firstOfMonth.getPrecedingWeekday(firstDayOfWeek);
+                const dateInRange = (date) => date.getMonth() == firstOfMonth.getMonth() && date.toDate() >= startDate.toDate() && date.toDate() <= endDate.toDate();
                 return (
                     <div className={classNames({
                         "month": true,
-                        "first-month": props.isFirstMonth,
-                        "last-month": props.isLastMonth,
+                        "first-month": isFirstMonth,
+                        "last-month": isLastMonth,
                     })}>
-                        <div className="label">{props.dayLabelsOnly ? "" : props.date.format({month: "long"})}</div>
-                        <Week length={7} date={firstDate.add(0, 0,  0)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={7} date={firstDate.add(0, 0,  7)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={7} date={firstDate.add(0, 0, 14)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={7} date={firstDate.add(0, 0, 21)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={7} date={firstDate.add(0, 0, 28)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
-                        <Week length={2} date={firstDate.add(0, 0, 35)} dayLabelsOnly={props.dayLabelsOnly} dateInRange={dateInRange} />
+                        <div className="label">{isLabel ? "" : firstOfMonth.format({month: "long"})}</div>
+                        <Week length={7} date={firstDate.add(0, 0,  0)} {...{isLabel, dateInRange}} />
+                        <Week length={7} date={firstDate.add(0, 0,  7)} {...{isLabel, dateInRange}} />
+                        <Week length={7} date={firstDate.add(0, 0, 14)} {...{isLabel, dateInRange}} />
+                        <Week length={7} date={firstDate.add(0, 0, 21)} {...{isLabel, dateInRange}} />
+                        <Week length={7} date={firstDate.add(0, 0, 28)} {...{isLabel, dateInRange}} />
+                        <Week length={2} date={firstDate.add(0, 0, 35)} {...{isLabel, dateInRange}} />
                     </div>
                 );
             }
 
-            function Calendar(props) {
-                let currentMonth = props.startDate.getFirstOfMonth();
+            function Calendar({startDate, endDate, firstDayOfWeek}) {
+                let firstOfMonth = startDate.getFirstOfMonth();
                 let isFirstMonth = true;
                 
                 const months = [];
-                while (currentMonth.toDate() <= props.endDate.toDate()) {
-                    const nextMonth = currentMonth.add(0, 1 ,0);
-                    const isLastMonth = nextMonth.toDate() > props.endDate.toDate();
+                while (currentMonth.toDate() <= endDate.toDate()) {
+                    const nextFirstOfMonth = firstOfMonth.add(0, 1 ,0).getFirstOfMonth();
+                    const isLastMonth = nextFirstOfMonth.toDate() > endDate.toDate();
 
                     months.push(
                         <Month
-                            key={currentMonth.toValueString()}
-                            date={currentMonth}
-                            startDate={props.startDate}
-                            endDate={props.endDate}
-                            firstDayOfWeek={props.firstDayOfWeek}
-                            isFirstMonth={isFirstMonth}
-                            isLastMonth={isLastMonth}
+                            key={firstOfMonth.toValueString()}
+                            {...{firstOfMonth, startDate, endDate, firstDayOfWeek, isFirstMonth, isLastMonth}}
                         />
                     )
 
-                    currentMonth = nextMonth;
+                    firstOfMonth = nextFirstOfMonth;
                     isFirstMonth = false;
                 }
 
                 return (
                     <div className="calendar">
                         <Month
-                            date={currentMonth}
-                            dayLabelsOnly={true}
-                            firstDayOfWeek={props.firstDayOfWeek}
+                            isLabel={true}
+                            {...{firstOfMonth, firstDayOfWeek}}
                         />
                         {months}
                     </div>
                 )
             }
 
-            function Container(props) {
+            function Container() {
                 const [title, setTitle] = React.useState("Title");
                 const [startDate, setStartDate] = React.useState(new CalendarDate());
                 const [endDate, setEndDate] = React.useState(startDate.add(1, 0, 0));
@@ -165,9 +159,9 @@
                 )
             }
 
-            function Header(props) {
-                const startYear = props.startDate.getFullYear();
-                const endYear = props.endDate.getFullYear();
+            function Header({title, startDate, endDate}) {
+                const startYear = startDate.getFullYear();
+                const endYear = endDate.getFullYear();
                 
                 let yearSpan = "";
 
@@ -182,13 +176,13 @@
 
                 return (
                     <div className="header">
-                        <div className="title">{props.title}</div>
+                        <div className="title">{title}</div>
                         <div className="year">{yearSpan}</div>
                     </div>
                 )
             }
 
-            function Settings(props) {
+            function Settings({title, startDate, endDate, firstDayOfWeek, setTitle, setStartDate, setEndDate, setFirstDayOfWeek}) {
                 const today = new CalendarDate();
 
                 const weekdayOptions = [];
@@ -210,19 +204,19 @@
                         <form>
                             <p>
                                 <label>Title:</label>
-                                <input type="text" className="titleInput" value={props.title} onChange={(e) => props.setTitle(e.target.value)} />
+                                <input type="text" className="titleInput" value={title} onChange={(e) => setTitle(e.target.value)} />
                             </p>
                             <p>
                                 <label>Start Date:</label>
-                                <input type="date" defaultValue={props.startDate.toValueString()} onChange={(e) => handleDateChange(e, props.setStartDate)} />
+                                <input type="date" defaultValue={startDate.toValueString()} onChange={(e) => handleDateChange(e, setStartDate)} />
                             </p>
                             <p>
                                 <label>End Date:</label>
-                                <input type="date" defaultValue={props.endDate.toValueString()} onChange={(e) => handleDateChange(e, props.setEndDate)} />
+                                <input type="date" defaultValue={endDate.toValueString()} onChange={(e) => handleDateChange(e, setEndDate)} />
                             </p>
                             <p>
                                 <label>Start Weekday:</label>
-                                <select value={props.firstDayOfWeek} onChange={(e) => props.setFirstDayOfWeek(e.target.value)}>
+                                <select value={firstDayOfWeek} onChange={(e) => setFirstDayOfWeek(e.target.value)}>
                                     {weekdayOptions}
                                 </select>
                             </p>
