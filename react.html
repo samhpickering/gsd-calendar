@@ -35,8 +35,11 @@
                 getDay() { return this.#date.getDay(); }
 
                 toDate() { return new Date(this.#date); }
-                between(calStartDate, calEndDate) {
-                    return this.toDate() >= calStartDate.toDate() && this.toDate() <= calEndDate.toDate();
+                before(date) { return this.toDate() < date.toDate(); }
+                after(date) { return this.toDate() > date.toDate(); }
+
+                between(startDate, endDate) {
+                    return !this.before(startDate) && !this.after(endDate);
                 }
 
                 toValueString() {
