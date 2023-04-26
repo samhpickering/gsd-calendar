@@ -28,18 +28,30 @@
                     const date = new Date(...arguments);
                     this.#date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
                 }
+                clone() {
+                    return new CalendarDate(this.toDate());
+                }
+                toDate() { return new Date(this.#date); }
 
                 getFullYear() { return this.#date.getFullYear(); }
                 getMonth() { return this.#date.getMonth(); }
                 getDate() { return this.#date.getDate(); }
                 getDay() { return this.#date.getDay(); }
 
-                toDate() { return new Date(this.#date); }
                 before(date) { return this.toDate() < date.toDate(); }
                 after(date) { return this.toDate() > date.toDate(); }
 
                 between(startDate, endDate) {
                     return !this.before(startDate) && !this.after(endDate);
+                }
+
+                min(date) {
+                    if (this.after(date)) return date.clone();
+                    return this.clone();
+                }
+                max(date) {
+                    if (this.before(date)) return date.clone();
+                    return this.clone();
                 }
 
                 toValueString() {
@@ -60,6 +72,9 @@
                 }
                 getFirstOfMonth() {
                     return new CalendarDate(this.getFullYear(), this.getMonth(), 1);
+                }
+                getLastOfMonth() {
+                    return this.add(0, 1, 0).getFirstOfMonth().add(0, 0, -1);
                 }
                 getPrecedingWeekday(weekDay) {
                     const daysBefore = mod(this.getDay() - weekDay, 7);
@@ -99,22 +114,22 @@
                 );
             }
 
-            function Month({firstOfMonth, calStartDate, calEndDate, firstDayOfWeek, isFirstMonth, isLastMonth, isLabel}) {
-                const firstDate = firstOfMonth.getPrecedingWeekday(firstDayOfWeek);
-                const dateInRange = (date) => date.getMonth() == firstOfMonth.getMonth() && date.between(calStartDate, calEndDate);
+            function Month({monthStartDate, monthEndDate, firstDayOfWeek, isFirstMonth, isLastMonth, isLabel}) {
+                const firstDayDate = monthStartDate.getFirstOfMonth().getPrecedingWeekday(firstDayOfWeek);
+                const dateInRange = (date) => date.getMonth() == monthStartDate.getMonth() && date.between(monthStartDate, monthEndDate);
                 return (
                     <div className={classNames({
                         "month": true,
                         "first-month": isFirstMonth,
                         "last-month": isLastMonth,
                     })}>
-                        <div className="label">{isLabel ? "" : firstOfMonth.format({month: "long"})}</div>
-                        <Week length={7} date={firstDate.add(0, 0,  0)} {...{isLabel, dateInRange}} />
-                        <Week length={7} date={firstDate.add(0, 0,  7)} {...{isLabel, dateInRange}} />
-                        <Week length={7} date={firstDate.add(0, 0, 14)} {...{isLabel, dateInRange}} />
-                        <Week length={7} date={firstDate.add(0, 0, 21)} {...{isLabel, dateInRange}} />
-                        <Week length={7} date={firstDate.add(0, 0, 28)} {...{isLabel, dateInRange}} />
-                        <Week length={2} date={firstDate.add(0, 0, 35)} {...{isLabel, dateInRange}} />
+                        <div className="label">{isLabel ? "" : monthStartDate.format({month: "long"})}</div>
+                        <Week length={7} date={firstDayDate.add(0, 0,  0)} {...{isLabel, dateInRange}} />
+                        <Week length={7} date={firstDayDate.add(0, 0,  7)} {...{isLabel, dateInRange}} />
+                        <Week length={7} date={firstDayDate.add(0, 0, 14)} {...{isLabel, dateInRange}} />
+                        <Week length={7} date={firstDayDate.add(0, 0, 21)} {...{isLabel, dateInRange}} />
+                        <Week length={7} date={firstDayDate.add(0, 0, 28)} {...{isLabel, dateInRange}} />
+                        <Week length={2} date={firstDayDate.add(0, 0, 35)} {...{isLabel, dateInRange}} />
                     </div>
                 );
             }
@@ -126,12 +141,17 @@
                 const months = [];
                 while (true) {
                     const nextFirstOfMonth = firstOfMonth.add(0, 1 ,0).getFirstOfMonth();
+                    const lastOfMonth = firstOfMonth.getLastOfMonth();
+
+                    const monthStartDate = firstOfMonth.max(calStartDate);
+                    const monthEndDate = lastOfMonth.min(calEndDate);
+
                     const isLastMonth = !nextFirstOfMonth.between(calStartDate, calEndDate);
 
                     months.push(
                         <Month
                             key={firstOfMonth.toValueString()}
-                            {...{firstOfMonth, calStartDate, calEndDate, firstDayOfWeek, isFirstMonth, isLastMonth}}
+                            {...{monthStartDate, monthEndDate, firstDayOfWeek, isFirstMonth, isLastMonth}}
                         />
                     )
 
@@ -145,7 +165,8 @@
                     <div className="calendar">
                         <Month
                             isLabel={true}
-                            {...{firstOfMonth, firstDayOfWeek}}
+                            monthStartDate={calStartDate}
+                            {...{firstDayOfWeek}}
                         />
                         {months}
                     </div>
