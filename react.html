@@ -40,6 +40,7 @@
 
                 before(date) { return this.toDate() < date.toDate(); }
                 after(date) { return this.toDate() > date.toDate(); }
+                equals(date) { return this.toDate().valueOf() == date.toDate().valueOf(); }
 
                 between(startDate, endDate) {
                     return !this.before(startDate) && !this.after(endDate);
@@ -114,7 +115,7 @@
                 );
             }
 
-            function Month({monthStartDate, monthEndDate, firstDayOfWeek, isFirstMonth, isLastMonth, isLabel}) {
+            const Month = React.memo(function Month({monthStartDate, monthEndDate, firstDayOfWeek, isFirstMonth, isLastMonth, isLabel}) {
                 const firstDayDate = monthStartDate.getFirstOfMonth().getPrecedingWeekday(firstDayOfWeek);
                 const dateInRange = (date) => date.getMonth() == monthStartDate.getMonth() && date.between(monthStartDate, monthEndDate);
                 return (
@@ -132,7 +133,16 @@
                         <Week length={2} date={firstDayDate.add(0, 0, 35)} {...{isLabel, dateInRange}} />
                     </div>
                 );
-            }
+            }, function(oldProps, newProps) {
+                return (
+                    newProps.monthStartDate.equals(oldProps.monthStartDate)
+                    && (!newProps.monthEndDate || newProps.monthEndDate.equals(oldProps.monthEndDate))
+                    && newProps.firstDayOfWeek == oldProps.firstDayOfWeek
+                    && newProps.isFirstMonth == oldProps.isFirstMonth
+                    && newProps.isLastMonth == oldProps.isLastMonth
+                    && newProps.isLabel == oldProps.isLabel
+                );
+            });
 
             function Calendar({calStartDate, calEndDate, firstDayOfWeek}) {
                 let firstOfMonth = calStartDate.getFirstOfMonth();
